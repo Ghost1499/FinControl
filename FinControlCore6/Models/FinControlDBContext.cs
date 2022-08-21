@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace FinControlCore6
+namespace FinControlCore6.Models
 {
     public partial class FinControlDBContext : DbContext
     {

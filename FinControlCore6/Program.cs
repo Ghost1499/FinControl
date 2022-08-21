@@ -1,4 +1,4 @@
-using FinControlCore6;
+using FinControlCore6.Models;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +17,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+// конвейер обработки запросов
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 

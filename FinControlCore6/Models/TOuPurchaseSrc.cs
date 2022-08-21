@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace FinControlCore6
+namespace FinControlCore6.Models
 {
     /// <summary>
     /// Система источник загружаемых данных (кто вызывает веб-сервис)
