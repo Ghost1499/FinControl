@@ -1,4 +1,4 @@
-using FinControlCore6.Models;
+using FinControlCore6.Data;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 var builder = WebApplication.CreateBuilder(args);

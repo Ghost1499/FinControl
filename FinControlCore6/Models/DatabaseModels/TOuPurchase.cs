@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace FinControlCore6.Models
+namespace FinControlCore6.Models.DatabaseModels
 {
     /// <summary>
     /// Закупка подразделения

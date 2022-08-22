@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using FinControlCore6.Models.DatabaseModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace FinControlCore6.Models
+namespace FinControlCore6.Data
 {
     public partial class FinControlDBContext : DbContext
     {

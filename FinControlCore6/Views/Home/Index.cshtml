@@ -71,7 +71,11 @@
 @section Scripts{
 	<script>
 		$(document).ready(function () {
-			$('#table_id').DataTable();
+			$('#table_id').DataTable(
+				{
+					serverSide: true,
+					ajax: "/Home/TableDataSource"
+				});
 		});
 	</script>
 
