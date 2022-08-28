@@ -1,4 +1,7 @@
-﻿namespace FinControlCore6.Models.AuxiliaryModels
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
+using System.ComponentModel.DataAnnotations;
+
+namespace FinControlCore6.Models.AuxiliaryModels
 {
     /// <summary>
     /// The parameters sent by jQuery DataTables in AJAX queries.
@@ -48,9 +51,9 @@
                (Order[0].Dir == DataTableOrderDir.Desc ? " " + Order[0].Dir : string.Empty))
             : null;
 
-        /// <summary>
-        /// For Posting Additional Parameters to Server
-        /// </summary>
-        public IEnumerable<string> AdditionalValues { get; set; }
+        ///// <summary>
+        ///// For Posting Additional Parameters to Server
+        ///// </summary>
+        //public IEnumerable<string>? AdditionalValues { get; set; }
     }
 }

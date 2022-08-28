@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
+using System;
 using System.Collections.Generic;
 
 namespace FinControlCore6.Models.DatabaseModels
@@ -174,5 +175,11 @@ namespace FinControlCore6.Models.DatabaseModels
         public decimal? DeliverySum { get; set; }
 
         public virtual TOuPurchaseOp Operation { get; set; } = null!;
+
+        public List<string> GetPropertiesNames()
+        {
+            var properties = GetType().GetProperties();
+            return properties.Select(p => p.Name).ToList();
+        }
     }
 }

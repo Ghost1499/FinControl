@@ -5,7 +5,7 @@ namespace FinControlCore6.Models.AuxiliaryModels
     /// <summary>
     /// The additional columns that you can send to jQuery DataTables for automatic processing.
     /// </summary>
-    public class DataTableRow
+    public abstract class DataTableRow
     {
         /// <summary>
         /// Set the ID property of the dt-tag tr node to this value

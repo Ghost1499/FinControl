@@ -22,25 +22,32 @@ namespace FinControlCore6.Controllers
 
         public IActionResult Index()
         {
-            _indexViewModel.Load();
-
-            ViewBag.modelsList = modelList;
-            return View(modelList.First());
+            _indexViewModel.LoadDataPropertiesNames();
+            return View(_indexViewModel);
         }
 
         public JsonResult TableDataSource([FromBody] DataTableParameters parameters)
         {
-            _indexViewModel.Load();
             if (!ModelState.IsValid)
             {
-                throw new Exception("Some model is invalid");
+                string errors = $"Количество ошибок: {ModelState.ErrorCount}. Ошибки в свойствах: ";
+                foreach (var prop in ModelState.Keys)
+                {
+                    errors = $"{errors}{prop}; ";
+                }
+                throw new Exception(errors);
             }
             var dataTableResult = new DataTableResult<TOuPurchase>();
+            _indexViewModel.LoadTOuPurchasesData(parameters.Start, parameters.Length);
             dataTableResult.Draw = parameters.Draw;
             dataTableResult.RecordsTotal = (int)_indexViewModel.TotalCount;
             dataTableResult.RecordsFiltered = (int)_indexViewModel.FilteredCount;
-            dataTableResult.Data = _indexViewModel.GetTOuPurchasesData(parameters.Start, parameters.Length);
-            return Json(dataTableResult);
+            dataTableResult.Data = _indexViewModel.Purchases;
+            JsonResult jsonResult = Json(
+                dataTableResult
+                );
+            return jsonResult;
+            //return Json("");
         }
 
         public IActionResult Privacy()

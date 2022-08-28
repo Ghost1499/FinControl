@@ -1,0 +1,32 @@
+﻿@using FinControlCore6.Models.DatabaseModels
+@using FinControlCore6.Utils
+@using FinControlCore6.ViewModels
+@model IndexViewModel
+
+@{
+	Type modelElementsType = Model.Purchases.GetType().GetGenericArguments().First();
+	var properties = Utils.GetProperties(modelElementsType);
+}
+<table class="display" id=@ViewBag.TagId>
+	<thead>
+		<tr>
+			@foreach (var propertyName in Utils.GetPropertiesNames(properties))
+			{
+				<th>@propertyName</th>
+			}
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var purchase in Model.Purchases)
+		{
+			<tr>
+				@foreach (var property in properties)
+				{
+					<td>@Utils.GetPropertyValue(property,purchase).ToString()</td>
+				}
+			</tr>
+		}
+	</tbody>
+
+</table>
+

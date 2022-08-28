@@ -13,9 +13,7 @@ namespace FinControlCore6.Models.AuxiliaryModels
         /// The draw counter that this object is a response to - from the draw parameter sent as part of the data request.
         /// Note that it is strongly recommended for security reasons that you cast this parameter to an integer, rather than simply echoing back to the client what it sent in the draw parameter, in order to prevent Cross Site Scripting (XSS) attacks.
         /// </summary>
-        /// 
-        [Required]
-        [JsonProperty("draw"),JsonRequired]
+        [JsonProperty("draw")]
         public int? Draw { get; set; } = null;
 
         /// <summary>
@@ -45,6 +43,7 @@ namespace FinControlCore6.Models.AuxiliaryModels
         [JsonProperty("error", NullValueHandling = NullValueHandling.Ignore)]
         public string? Error { get; set; } = null;
 
+        [JsonProperty("partialView", NullValueHandling = NullValueHandling.Ignore)]
         public string? PartialView { get; set; } = null;
     }
 }

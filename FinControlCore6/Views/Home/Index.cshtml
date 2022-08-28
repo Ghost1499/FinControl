@@ -1,4 +1,8 @@
-﻿@model TOuPurchase
+﻿@using FinControlCore6.Models.DatabaseModels;
+@using FinControlCore6.Utils
+@using FinControlCore6.ViewModels;
+
+@model IndexViewModel
 
 @{
 	ViewData["Title"] = "Home Page";
@@ -6,26 +10,7 @@
 
 <div class="text-center">
 	<h1 class="display-4">Закупка подразделения</h1>
-	@*<table id="table_id" class="display">
-	<thead>
-	<tr>
-	<th>Column 1</th>
-	<th>Column 2</th>
-	</tr>
-	</thead>
-	<tbody>
-	<tr>
-	<td>Row 1 Data 1</td>
-	<td>Row 1 Data 2</td>
-	</tr>
-	<tr>
-	<td>Row 2 Data 1</td>
-	<td>Row 2 Data 2</td>
-	</tr>
-	</tbody>
-	</table>*@
-	@*@Html.DisplayForModel()*@
-
+	@*
 	<table id="table_id" class="display">
 		<thead>
 			<tr>
@@ -37,9 +22,6 @@
 				<th>InvoiceSum</th>
 			</tr>
 		</thead>
-		@*@foreach (var name in collection)
-		{
-		}*@
 		<tbody>
 			@foreach (var note in ViewBag.modelsList)
 			{
@@ -66,18 +48,40 @@
 			}
 		</tbody>
 	</table>
+	*@
 
+	@*<vc:table-from-model model="Model" tagId="main_table"></vc:table-from-model>*@
+	@{
+		//Type modelElementsType = Model.Purchases.GetType().GetGenericArguments().First();
+		//var properties = Utils.GetProperties(modelElementsType);
+	}
+	<table class="display" id="main_table">
+		<thead>
+			<tr>
+				@foreach (var propertyName in Model.DataPropertiesNames)
+				{
+					<th>@propertyName</th>
+				}
+			</tr>
+		</thead>
+		@*<tbody>
+			@foreach (var purchase in Model.Purchases)
+			{
+				<tr>
+					@foreach (var property in properties)
+					{
+						<td>@Utils.GetPropertyValue(property,purchase).ToString()</td>
+					}
+				</tr>
+			}
+		</tbody>*@
+
+	</table>
 </div>
 @section Scripts{
-	<script>
-		$(document).ready(function () {
-			$('#table_id').DataTable(
-				{
-					serverSide: true,
-					ajax: "/Home/TableDataSource"
-				});
-		});
-	</script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.js"></script>
+	
+	<script type="text/javascript" charset="utf-8" src="~/js/DataTableCreation.js"></script>
 
 }
 

@@ -1,33 +1,41 @@
 ﻿using FinControlCore6.Data;
 using FinControlCore6.Models.DatabaseModels;
+using FinControlCore6.Utils;
 using System.ComponentModel.DataAnnotations;
 
 namespace FinControlCore6.ViewModels
 {
     public class IndexViewModel
     {
-        //List<TOuPurchase> purchases;
         readonly FinControlDBContext context;
         
         [Required]
         public int? TotalCount { get; set; } = null;
         [Required]
         public int? FilteredCount { get; set; } = null;
+        public List<TOuPurchase> Purchases { get; set; } = new List<TOuPurchase>();
+        public IEnumerable<string> DataPropertiesNames { get; set; } = new List<string>();
+
         public IndexViewModel(FinControlDBContext context)
         {
             this.context = context;
         }
 
-        public void Load()
+        private void setProperties()
         {
             TotalCount = context.TOuPurchases.Count();
             FilteredCount = context.TOuPurchases.Count();
         }
 
-        public List<TOuPurchase> GetTOuPurchasesData(int start, int length)
+        public void LoadTOuPurchasesData(int start, int length)
         {
-            var result = context.TOuPurchases.Skip(start).Take(length).ToList();
-            return result;
+            Purchases = context.TOuPurchases.Skip(start).Take(length).ToList();
+            setProperties();
         }
+        public void LoadDataPropertiesNames()
+        {
+            DataPropertiesNames = Utils.Utils.GetPropertiesNames(Purchases.GetType().GetGenericArguments().First());
+        }
+
     }
 }
