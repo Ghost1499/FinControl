@@ -1,22 +1,18 @@
 ﻿@using FinControlCore6.Models.DatabaseModels
 @using FinControlCore6.Utils
 @using FinControlCore6.ViewModels
-@model IndexViewModel
+@model IEnumerable<string>
 
-@{
-	Type modelElementsType = Model.Purchases.GetType().GetGenericArguments().First();
-	var properties = Utils.GetProperties(modelElementsType);
-}
 <table class="display" id=@ViewBag.TagId>
 	<thead>
 		<tr>
-			@foreach (var propertyName in Utils.GetPropertiesNames(properties))
-			{
-				<th>@propertyName</th>
-			}
+		@foreach (var propertyName in Model)
+		{
+			<th>@propertyName</th>
+		}
 		</tr>
 	</thead>
-	<tbody>
+	@*<tbody>
 		@foreach (var purchase in Model.Purchases)
 		{
 			<tr>
@@ -26,7 +22,7 @@
 				}
 			</tr>
 		}
-	</tbody>
+	</tbody>*@
 
 </table>
 

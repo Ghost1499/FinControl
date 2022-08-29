@@ -55,7 +55,7 @@
 		//Type modelElementsType = Model.Purchases.GetType().GetGenericArguments().First();
 		//var properties = Utils.GetProperties(modelElementsType);
 	}
-	<table class="display" id="main_table">
+	@*<table class="display" id="main_table">
 		<thead>
 			<tr>
 				@foreach (var propertyName in Model.DataPropertiesNames)
@@ -64,7 +64,7 @@
 				}
 			</tr>
 		</thead>
-		@*<tbody>
+		<tbody>
 			@foreach (var purchase in Model.Purchases)
 			{
 				<tr>
@@ -74,9 +74,10 @@
 					}
 				</tr>
 			}
-		</tbody>*@
+		</tbody>
 
-	</table>
+	</table>*@
+	<vc:table-from-model model=@Model.DataPropertiesNames tag-id="main_table"></vc:table-from-model>
 </div>
 @section Scripts{
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.js"></script>

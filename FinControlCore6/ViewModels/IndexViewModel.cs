@@ -13,7 +13,7 @@ namespace FinControlCore6.ViewModels
         public int? TotalCount { get; set; } = null;
         [Required]
         public int? FilteredCount { get; set; } = null;
-        public List<TOuPurchase> Purchases { get; set; } = new List<TOuPurchase>();
+        public IEnumerable<TOuPurchase> Purchases { get; set; } = new List<TOuPurchase>();
         public IEnumerable<string> DataPropertiesNames { get; set; } = new List<string>();
 
         public IndexViewModel(FinControlDBContext context)
