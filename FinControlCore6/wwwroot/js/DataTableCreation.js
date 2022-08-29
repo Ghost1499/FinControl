@@ -12,7 +12,11 @@ $(document).ready(function () {
 	//columnsArr = [{ data: "col1" }, { data: "col2" }, {data:"col3"}]
 	$('#main_table').DataTable(
 		{
+			stateSave: true,
+
 			serverSide: true,
+			processing: true,
+			
 			ajax: {
 				url: "/Home/TableDataSource",
 				//url: "ajaxTestData.txt",
