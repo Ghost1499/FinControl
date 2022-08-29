@@ -48,4 +48,5 @@ $(document).ready(function () {
 		});
 	}).draw();
 	console.log("2. DataTable created")
+	console.log("3. Test string")
 	});
