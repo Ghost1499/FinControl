@@ -10,7 +10,7 @@ $(document).ready(function () {
 		console.log('1. Finding columnsArr')
 	})
 	//columnsArr = [{ data: "col1" }, { data: "col2" }, {data:"col3"}]
-	$('#main_table').DataTable(
+	mainTable = $('#main_table').DataTable(
 		{
 			stateSave: true,
 
@@ -28,9 +28,24 @@ $(document).ready(function () {
 				},
 				dataSrc: "data"
 			},
-			columns: columnsArr
+			columns: columnsArr,
+			columnDefs: [
+				{
+					searchable: false,
+					orderable: false,
+					targets: 0,
+				},
+			],
+			order: [[1, 'asc']],
 
 		}
 	)
+	mainTable.on('order.dt search.dt', function () {
+		let i = 1;
+
+		mainTable.cells(null, 0, { search: 'applied', order: 'applied' }).every(function (cell) {
+			this.data(i++);
+		});
+	}).draw();
 	console.log("2. DataTable created")
 	});
