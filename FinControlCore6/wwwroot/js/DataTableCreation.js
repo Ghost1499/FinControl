@@ -16,6 +16,9 @@ $(document).ready(function () {
 
 			serverSide: true,
 			processing: true,
+			search: {
+				return: true,
+			},
 			
 			ajax: {
 				url: "/Home/TableDataSource",
