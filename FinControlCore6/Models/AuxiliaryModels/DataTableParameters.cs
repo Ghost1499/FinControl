@@ -18,12 +18,12 @@ namespace FinControlCore6.Models.AuxiliaryModels
         /// <summary>
         /// An array defining all columns in the table.
         /// </summary>
-        public DataTableColumn[] Columns { get; set; }
+        public DataTableColumn[]? Columns { get; set; }
 
         /// <summary>
         /// An array defining how many columns are being ordering upon - i.e. if the array length is 1, then a single column sort is being performed, otherwise a multi-column sort is being performed.
         /// </summary>
-        public DataTableOrder[] Order { get; set; }
+        public DataTableOrder[]? Order { get; set; }
 
         /// <summary>
         /// Paging first record indicator.
@@ -41,15 +41,28 @@ namespace FinControlCore6.Models.AuxiliaryModels
         /// <summary>
         /// Global search value. To be applied to all columns which have searchable as true.
         /// </summary>
-        public DataTableSearch Search { get; set; }
+        public DataTableSearch? Search { get; set; }
 
         /// <summary>
         /// Custom column that is used to further sort on the first Order column.
         /// </summary>
-        public string SortOrder => Columns != null && Order != null && Order.Length > 0
-            ? (Columns[Order[0].Column].Data +
-               (Order[0].Dir == DataTableOrderDir.Desc ? " " + Order[0].Dir : string.Empty))
-            : null;
+        public string? SortOrder
+        {
+            get
+            {
+                if (Columns != null && Order != null && Order.Length > 0)
+                {
+                    string result = Columns[Order[0].Column].Data;
+                    if(Order[0].Dir == DataTableOrderDir.Desc)
+                    {
+                        result += " " + Order[0].Dir;
+                    }
+                    return result;
+                }
+                else
+                    return null;
+            }
+        }
 
         ///// <summary>
         ///// For Posting Additional Parameters to Server
