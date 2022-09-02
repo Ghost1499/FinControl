@@ -1,4 +1,6 @@
 ﻿using FinControlCore6.Data;
+using FinControlCore6.Extensions;
+using FinControlCore6.Models.AuxiliaryModels;
 using FinControlCore6.Models.DatabaseModels;
 using FinControlCore6.Utils;
 using System.ComponentModel.DataAnnotations;
@@ -21,16 +23,20 @@ namespace FinControlCore6.ViewModels
             this.context = context;
         }
 
-        private void setProperties()
+        private void setCounters()
         {
             TotalCount = context.TOuPurchases.Count();
-            FilteredCount = context.TOuPurchases.Count();
+            FilteredCount = Purchases.Count();
         }
 
-        public void LoadTOuPurchasesData(int start, int length)
+        public void LoadTOuPurchasesData(DataTableParameters parameters)
         {
-            Purchases = context.TOuPurchases.Skip(start).Take(length).ToList();
-            setProperties();
+            var result = context.TOuPurchases.AsQueryable();
+            DataTableOrder order = parameters.Order[0];
+            result = result.OrderByDynamic(parameters.Columns[order.Column].Data, order.Dir);
+            Purchases = result;
+            setCounters();
+            Purchases = Purchases.Skip(parameters.Start).Take(parameters.Length).ToList();
         }
         public void LoadDataPropertiesNames()
         {

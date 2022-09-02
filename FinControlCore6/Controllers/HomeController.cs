@@ -38,7 +38,7 @@ namespace FinControlCore6.Controllers
                 throw new Exception(errors);
             }
             var dataTableResult = new DataTableResult<TOuPurchase>();
-            _indexViewModel.LoadTOuPurchasesData(parameters.Start, parameters.Length);
+            _indexViewModel.LoadTOuPurchasesData(parameters);
             dataTableResult.Draw = parameters.Draw;
             dataTableResult.RecordsTotal = (int)_indexViewModel.TotalCount;
             dataTableResult.RecordsFiltered = (int)_indexViewModel.FilteredCount;
