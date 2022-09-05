@@ -23,20 +23,33 @@ namespace FinControlCore6.ViewModels
             this.context = context;
         }
 
-        private void setCounters()
+        private void setCounters(IQueryable<TOuPurchase> filtered)
         {
             TotalCount = context.TOuPurchases.Count();
-            FilteredCount = Purchases.Count();
+            FilteredCount = filtered.Count();
         }
 
         public void LoadTOuPurchasesData(DataTableParameters parameters)
         {
             var result = context.TOuPurchases.AsQueryable();
-            DataTableOrder order = parameters.Order[0];
+            var searchQuery = parameters.Search?.Value ?? "";
+            //var searchQuery = "Новый";
+            string propName = "";
+            if (string.IsNullOrEmpty(searchQuery))
+            {
+                var searchColumn = parameters.Columns?.Where(c => c.Search.Value != "")?.FirstOrDefault();
+                searchQuery = searchColumn?.Search?.Value ?? "";
+                propName = searchColumn?.Data ?? "";
+            }
+            if (!string.IsNullOrWhiteSpace(searchQuery))
+            {
+                result = result.WhereDynamic(searchQuery, propName);
+            }
+
+            DataTableOrder order = parameters.Order.First();
             result = result.OrderByDynamic(parameters.Columns[order.Column].Data, order.Dir);
-            Purchases = result;
-            setCounters();
-            Purchases = Purchases.Skip(parameters.Start).Take(parameters.Length).ToList();
+            setCounters(result);
+            Purchases = result.Skip(parameters.Start).Take(parameters.Length).ToList();
         }
         public void LoadDataPropertiesNames()
         {

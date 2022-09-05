@@ -6,7 +6,7 @@ namespace FinControlCore6.Utils
 	{
 		public static IEnumerable<PropertyInfo> GetProperties(Type type)
 		{
-			return type.GetProperties(BindingFlags.Instance | BindingFlags.Public);
+			return type.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(x => x.CanRead && x.CanWrite && (!x.GetGetMethod()?.IsVirtual ?? false));
 		}
 		public static IEnumerable<string> GetPropertiesNames(Type type)
 		{
@@ -21,5 +21,6 @@ namespace FinControlCore6.Utils
 		{
 			return property.GetValue(obj);
 		}
+
     }
 }

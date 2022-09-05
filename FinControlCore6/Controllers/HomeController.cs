@@ -12,22 +12,23 @@ namespace FinControlCore6.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly IndexViewModel _indexViewModel;
+        private readonly IndexViewModel indexViewModel;
 
         public HomeController(FinControlDBContext context,  ILogger<HomeController> logger)
         {
-            _indexViewModel = new IndexViewModel(context);
+            indexViewModel = new IndexViewModel(context);
             _logger = logger;
         }
 
         public IActionResult Index()
         {
-            _indexViewModel.LoadDataPropertiesNames();
-            return View(_indexViewModel);
+            indexViewModel.LoadDataPropertiesNames();
+            return View(indexViewModel);
         }
 
         public JsonResult TableDataSource([FromBody] DataTableParameters parameters)
         {
+
             if (!ModelState.IsValid)
             {
                 string errors = $"Количество ошибок: {ModelState.ErrorCount}. Ошибки в свойствах: ";
@@ -37,17 +38,12 @@ namespace FinControlCore6.Controllers
                 }
                 throw new Exception(errors);
             }
-            var dataTableResult = new DataTableResult<TOuPurchase>();
-            _indexViewModel.LoadTOuPurchasesData(parameters);
-            dataTableResult.Draw = parameters.Draw;
-            dataTableResult.RecordsTotal = (int)_indexViewModel.TotalCount;
-            dataTableResult.RecordsFiltered = (int)_indexViewModel.FilteredCount;
-            dataTableResult.Data = _indexViewModel.Purchases;
+            indexViewModel.LoadTOuPurchasesData(parameters);
+            var dataTableResult = new DataTableResult<TOuPurchase>(parameters.Draw, (int)indexViewModel.TotalCount, (int)indexViewModel.FilteredCount, indexViewModel.Purchases);
             JsonResult jsonResult = Json(
                 dataTableResult
                 );
             return jsonResult;
-            //return Json("");
         }
 
         public IActionResult Privacy()

@@ -7,8 +7,17 @@ namespace FinControlCore6.Models.AuxiliaryModels
     /// A full result, as understood by jQuery DataTables.
     /// </summary>
     /// <typeparam name="T">The data type of each row.</typeparam>
-    public class DataTableResult<T>
+    public record class DataTableResult<T>
     {
+        public DataTableResult(int draw, int recordsTotal, int recordsFiltered, IEnumerable<T> data, string? error =null, string? partialView =null)
+        {
+            Draw = draw;
+            RecordsTotal = recordsTotal;
+            RecordsFiltered = recordsFiltered;
+            Data = data;
+            Error = error;
+            PartialView = partialView;
+        }
         /// <summary>
         /// The draw counter that this object is a response to - from the draw parameter sent as part of the data request.
         /// Note that it is strongly recommended for security reasons that you cast this parameter to an integer, rather than simply echoing back to the client what it sent in the draw parameter, in order to prevent Cross Site Scripting (XSS) attacks.

@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Reflection;
 
 namespace FinControlCore6.Models.DatabaseModels
 {
@@ -180,6 +182,21 @@ namespace FinControlCore6.Models.DatabaseModels
         {
             var properties = GetType().GetProperties();
             return properties.Select(p => p.Name).ToList();
+        }
+
+        [NotMapped]
+        public string IntegralStringView
+        {
+            get
+            {
+                var properties = GetType().GetProperties().Where(x => x.CanRead && x.CanWrite && (!x.GetGetMethod()?.IsVirtual ?? false));
+                return properties.Aggregate<PropertyInfo, string>("", (x, y) => $"{x}\n{y.GetValue(this)}");
+            }
+        }
+
+        public override string ToString()
+        {
+            return IntegralStringView;
         }
     }
 }
