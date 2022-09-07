@@ -4,8 +4,10 @@ using System;
 using System.Linq;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
+using FinControlCore6.Utils;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using static System.Linq.Expressions.Expression;
+using System.ComponentModel;
 
 namespace FinControlCore6.Extensions
 {
@@ -16,104 +18,70 @@ namespace FinControlCore6.Extensions
             string orderByMember,
             DataTableOrderDir direction)
         {
-            var param = Expression.Parameter(typeof(T), "c");
+            var param = Parameter(typeof(T), "c");
 
-            var body = orderByMember.Split('.').Aggregate<string, Expression>(param, Expression.PropertyOrField);
+            var body = orderByMember.Split('.').Aggregate<string, Expression>(param, PropertyOrField);
 
             var queryable = direction == DataTableOrderDir.Asc ?
-                (IOrderedQueryable<T>)Queryable.OrderBy(query.AsQueryable(), (dynamic)Expression.Lambda(body, param)) :
-                (IOrderedQueryable<T>)Queryable.OrderByDescending(query.AsQueryable(), (dynamic)Expression.Lambda(body, param));
+                (IOrderedQueryable<T>)Queryable.OrderBy(query.AsQueryable(), (dynamic)Lambda(body, param)) :
+                (IOrderedQueryable<T>)Queryable.OrderByDescending(query.AsQueryable(), (dynamic)Lambda(body, param));
 
             return queryable;
         }
 
 
         public static IQueryable<T> WhereDynamic<T>(
-                this IQueryable<T> sourceList, string query, string propertyName = "")
+                this IQueryable<T> sourceList, Dictionary<string, string> columnsQueries)
         {
-            if (string.IsNullOrEmpty(query))
+            if (!columnsQueries.Any())
                 return sourceList;
 
             Type elementType = typeof(T);
 
-            PropertyInfo[] properties = elementType.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(x => x.CanRead && x.CanWrite && (!x.GetGetMethod()?.IsVirtual ?? false)).ToArray();
+            IEnumerable<PropertyInfo> properties = Utils.Utils.GetProperties(elementType);
             if (!properties.Any())
                 return sourceList;
-            
+
             ParameterExpression parameter = Parameter(elementType);
 
-            IEnumerable<MemberExpression> propertiesExpressions = properties.Select(
+            MethodInfo containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string) }) ?? throw new Exception("Rigth overload of Contains method not found");
+
+            List<Expression> columnsSearchExpressions = new List<Expression>();
+            foreach (var (columnName, propertyQuery) in columnsQueries)
+            {
+                IEnumerable<PropertyInfo> columnProperties = columnName == "" ? properties : properties.Where(p => p.Name.ToUpperInvariant() == columnName.ToUpperInvariant());
+                if (!columnProperties.Any())
+                    throw new Exception($"Property with name {columnName} not found");
+
+                IEnumerable<MemberExpression> columnPropertiesExpressions = columnProperties.Select(
                 property => Property(parameter, property));
 
-            IEnumerable<MethodInfo?> toStringMethods = properties.Select(
-                property => property.PropertyType.GetMethod("ToString",Type.EmptyTypes));
-            if (toStringMethods.Any(m => m == null))
-                throw new Exception($"Can not find ToString method for property of type {toStringMethods.First(m => m == null)}");
-
-            var tempExprs = propertiesExpressions.Zip(toStringMethods);
-
-            IEnumerable<Expression> expressionsToString = tempExprs.Select<(MemberExpression,MethodInfo?),Expression>(
-                pair => pair.Item1.Type == typeof(string)? pair.Item1: Call(pair.Item1, pair.Item2!));
-
-            MethodInfo? containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string) });
-            if (containsMethod == null)
-                throw new Exception("Rigth overload of Contains method not found");
-
-            IEnumerable<Expression> expressions = expressionsToString.Select(expression =>
-            Call(expression, containsMethod, Constant(query)));
-
-
-            Expression body = expressions.Aggregate((prev,current) => Or(prev, current));
-
-            Expression<Func<T, bool>> lambda = Lambda<Func<T,bool>>(body, parameter);
-            return sourceList.Where(lambda);
-            //if (!string.IsNullOrEmpty(propertyName))
-            //{
-            //    var property = elementType.GetProperty(propertyName, BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public);
-            //    if (property is null)
-            //        throw new Exception($"Property with name \"{propertyName}\" not found");
-            //    if (!property.CanRead)
-            //        throw new Exception($"Can not read property with name \"{property.Name}\"");
-            //    sourceList = sourceList.Where(c => property.GetValue(c).ToString().Contains(query, StringComparison.InvariantCultureIgnoreCase));
-            //}
-            //else
-            //{
-            //    //var properties = typeof(T).GetProperties().Where(x => x.CanRead && x.CanWrite && (!x.GetGetMethod()?.IsVirtual ?? false));
-
-            //    //Expression
-            //    sourceList = sourceList.Where(c => c != null /*&& EF.Functions.Like(c.ToString()!, $"%{query}%")*/);
-            //    //properties..Any(checkPropertyValue(c, query))); ;
-            //}
-            //return sourceList;
-        }
-
-        static Func<PropertyInfo, bool> checkPropertyValue<T>(T c, string query)
-        {
-            bool pred(PropertyInfo p)
-            {
-                object? propValue = p.GetValue(c);
-                if (propValue != null)
+                IEnumerable<MethodInfo?> toStringMethods = columnProperties.Select(
+                delegate (PropertyInfo property)
                 {
-                    bool searchRes = propValue.ToString()?.Contains(query, StringComparison.InvariantCultureIgnoreCase) ?? false;
-                    return searchRes;
-                }
-                return false;
+                    if (property.PropertyType == typeof(string))
+                        return null;
+                    MethodInfo? toStringMethod = property.PropertyType.GetMethod("ToString", Type.EmptyTypes);
+                    if (toStringMethod == null)
+                        throw new Exception($"Can not find ToString method for property of type {property.PropertyType}");
+                    return toStringMethod!;
+                });
+
+                var tempExprs = columnPropertiesExpressions.Zip(toStringMethods);
+
+                IEnumerable<Expression> expressionsToString = tempExprs.Select<(MemberExpression, MethodInfo?), Expression>(
+                    ((MemberExpression property, MethodInfo? toStringMethod) exprMembers) => exprMembers.toStringMethod != null ? Call(exprMembers.property, exprMembers.toStringMethod) : exprMembers.property);
+
+                IEnumerable<Expression> expressions = expressionsToString.Select(expression => Call(expression, containsMethod, Constant(propertyQuery)));
+
+                Expression columnBody = expressions.Aggregate((prev, current) => OrElse(prev, current));
+                columnsSearchExpressions.Add(columnBody);
             }
-            return pred;
+
+            Expression body = columnsSearchExpressions.Aggregate((prev, current) => AndAlso(prev, current));
+
+            Expression<Func<T, bool>> lambda = Lambda<Func<T, bool>>(body, parameter);
+            return sourceList.Where(lambda);
         }
-        //public static IQueryable<T> WhereByPropertyDynamic<T>(
-        //        this IQueryable<T> sourceList, string query, string propertyName)
-        //{
-        //    var property = typeof(T).GetProperty(propertyName, BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public);
-        //    if (!property.CanRead || property is null)
-        //        throw new Exception($"Can not read property with name \"{property.Name}\"");
-
-        //    return sourceList;
-        //}
-
-        //private static bool CheckContains<T>(PropertyInfo property, T obj)
-        //{
-
-        //}
     }
 }

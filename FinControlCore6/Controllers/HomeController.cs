@@ -26,7 +26,7 @@ namespace FinControlCore6.Controllers
             return View(indexViewModel);
         }
 
-        public JsonResult TableDataSource([FromBody] DataTableParameters parameters)
+        public async Task<JsonResult> TableDataSource([FromBody] DataTableParameters parameters)
         {
 
             if (!ModelState.IsValid)
@@ -38,7 +38,7 @@ namespace FinControlCore6.Controllers
                 }
                 throw new Exception(errors);
             }
-            indexViewModel.LoadTOuPurchasesData(parameters);
+            await indexViewModel.LoadTOuPurchasesDataAsync(parameters);
             var dataTableResult = new DataTableResult<TOuPurchase>(parameters.Draw, (int)indexViewModel.TotalCount, (int)indexViewModel.FilteredCount, indexViewModel.Purchases);
             JsonResult jsonResult = Json(
                 dataTableResult

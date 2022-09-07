@@ -3,6 +3,7 @@ using FinControlCore6.Extensions;
 using FinControlCore6.Models.AuxiliaryModels;
 using FinControlCore6.Models.DatabaseModels;
 using FinControlCore6.Utils;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
 namespace FinControlCore6.ViewModels
@@ -23,33 +24,31 @@ namespace FinControlCore6.ViewModels
             this.context = context;
         }
 
-        private void setCounters(IQueryable<TOuPurchase> filtered)
+        private async Task setCountersAsync(IQueryable<TOuPurchase> filtered)
         {
-            TotalCount = context.TOuPurchases.Count();
-            FilteredCount = filtered.Count();
+            TotalCount = await context.TOuPurchases.CountAsync();
+            FilteredCount = await filtered.CountAsync();
         }
 
-        public void LoadTOuPurchasesData(DataTableParameters parameters)
+        public async Task LoadTOuPurchasesDataAsync(DataTableParameters parameters)
         {
             var result = context.TOuPurchases.AsQueryable();
-            var searchQuery = parameters.Search?.Value ?? "";
-            //var searchQuery = "Новый";
-            string propName = "";
-            if (string.IsNullOrEmpty(searchQuery))
+            Dictionary<string,string> columnsSearches = new Dictionary<string,string>();
+            string globalSearch = parameters.Search?.Value ?? "";
+            if (globalSearch != "")
+                columnsSearches[""] = globalSearch;
+
+            IEnumerable<DataTableColumn> searchColumns = parameters.Columns?.Where(c => (c.Search?.Value ?? "") != "") ?? new DataTableColumn[0];
+            foreach (DataTableColumn datatableColumn in searchColumns)
             {
-                var searchColumn = parameters.Columns?.Where(c => c.Search.Value != "")?.FirstOrDefault();
-                searchQuery = searchColumn?.Search?.Value ?? "";
-                propName = searchColumn?.Data ?? "";
+                columnsSearches[datatableColumn.Data!] = datatableColumn.Search!.Value!;
             }
-            if (!string.IsNullOrWhiteSpace(searchQuery))
-            {
-                result = result.WhereDynamic(searchQuery, propName);
-            }
+            result = result.WhereDynamic(columnsSearches);
 
             DataTableOrder order = parameters.Order.First();
             result = result.OrderByDynamic(parameters.Columns[order.Column].Data, order.Dir);
-            setCounters(result);
-            Purchases = result.Skip(parameters.Start).Take(parameters.Length).ToList();
+            await setCountersAsync(result);
+            Purchases = await result.Skip(parameters.Start).Take(parameters.Length).ToListAsync();
         }
         public void LoadDataPropertiesNames()
         {
