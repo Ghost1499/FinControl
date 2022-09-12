@@ -10,6 +10,11 @@
 }
 function columnSearchHandler() {
     var columnApi = this;
+    $("#input" + this.index()).focusout(function() {
+        if (columnApi.search() !== this.value) {
+            columnApi.search(this.value);
+        }
+    });
     $("#input" + this.index()).keyup(function (e) {
         if (e.key === "Enter" || e.keyCode === 13) {
             if (columnApi.search() !== this.value) {

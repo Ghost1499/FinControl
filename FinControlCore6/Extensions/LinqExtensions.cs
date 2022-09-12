@@ -8,6 +8,9 @@ using FinControlCore6.Utils;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using static System.Linq.Expressions.Expression;
 using System.ComponentModel;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using static Npgsql.Replication.PgOutput.Messages.RelationMessage;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 
 namespace FinControlCore6.Extensions
 {
@@ -30,58 +33,82 @@ namespace FinControlCore6.Extensions
         }
 
 
+        // Названия колонок в запросе должны совпадать с названиями свойств модели
         public static IQueryable<T> WhereDynamic<T>(
-                this IQueryable<T> sourceList, Dictionary<string, string> columnsQueries)
+                this IQueryable<T> sourceList, string globalQuery, Dictionary<string, string> columnsQueries)
         {
-            if (!columnsQueries.Any())
+            if (!columnsQueries.Any() && string.IsNullOrEmpty(globalQuery))
                 return sourceList;
-
             Type elementType = typeof(T);
 
-            IEnumerable<PropertyInfo> properties = Utils.Utils.GetProperties(elementType);
+            IEnumerable<PropertyInfo> properties = ReflectionUtils.GetProperties(elementType);
             if (!properties.Any())
                 return sourceList;
 
             ParameterExpression parameter = Parameter(elementType);
 
-            MethodInfo containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string) }) ?? throw new Exception("Rigth overload of Contains method not found");
+            MethodInfo containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string) }) ?? throw new Exception("Rigth overload of Contains method was not found");
 
-            List<Expression> columnsSearchExpressions = new List<Expression>();
-            foreach (var (columnName, propertyQuery) in columnsQueries)
-            {
-                IEnumerable<PropertyInfo> columnProperties = columnName == "" ? properties : properties.Where(p => p.Name.ToUpperInvariant() == columnName.ToUpperInvariant());
-                if (!columnProperties.Any())
-                    throw new Exception($"Property with name {columnName} not found");
+            //PropertyToColumnComparer propertyToColumnComparer = new PropertyToColumnComparer();
 
-                IEnumerable<MemberExpression> columnPropertiesExpressions = columnProperties.Select(
-                property => Property(parameter, property));
+            IEnumerable<PropertyInfo> queryedProperties = globalQuery != "" ? properties :
+            // columns left joined to properties
+            //(from cq in columnsQueries.Keys
+            // join p in properties on cq.ToUpperInvariant() equals p.Name.ToUpperInvariant() into columnOnProp
+            // from subProp in columnOnProp.DefaultIfEmpty()
+            // select new
+            // {
+            //     columnQuery = cq.ToUpperInvariant(),
+            //     property = subProp ?? null
+            // })
+            // .Select(q => q.property ?? throw new Exception($"Property for column {q.columnQuery} was not found"));
+            columnsQueries.Keys.GroupJoin(properties, cq => cq, p => p.Name, (cq, props) => new { cq, props } /*,propertyToColumnComparer*/)
+            .SelectMany(propOnColQ => propOnColQ.props.DefaultIfEmpty(), (propOnColQ, p) => new { columnQuery = propOnColQ.cq, property = p ?? null })
+            .Select(q => q.property ?? throw new Exception($"Property for column {q.columnQuery} was not found"));
 
-                IEnumerable<MethodInfo?> toStringMethods = columnProperties.Select(
-                delegate (PropertyInfo property)
+            Dictionary<Type, MethodInfo> propertiesTypesToStringMethods = queryedProperties.Select(p => p.PropertyType).Distinct().Except(new[] { typeof(string) }).ToDictionary(pType => pType,
+                delegate (Type propertyType)
                 {
-                    if (property.PropertyType == typeof(string))
-                        return null;
-                    MethodInfo? toStringMethod = property.PropertyType.GetMethod("ToString", Type.EmptyTypes);
+                    MethodInfo? toStringMethod = propertyType.GetMethod("ToString", Type.EmptyTypes);
                     if (toStringMethod == null)
-                        throw new Exception($"Can not find ToString method for property of type {property.PropertyType}");
+                        throw new Exception($"Can not find ToString method for property of type {propertyType}");
                     return toStringMethod!;
                 });
 
-                var tempExprs = columnPropertiesExpressions.Zip(toStringMethods);
 
-                IEnumerable<Expression> expressionsToString = tempExprs.Select<(MemberExpression, MethodInfo?), Expression>(
-                    ((MemberExpression property, MethodInfo? toStringMethod) exprMembers) => exprMembers.toStringMethod != null ? Call(exprMembers.property, exprMembers.toStringMethod) : exprMembers.property);
+            var propsToStringExprsDict = queryedProperties.ToDictionary(p => p,
+                delegate (PropertyInfo property)
+                {
+                    var toStrMethod = propertiesTypesToStringMethods.GetValueOrDefault(property.PropertyType);
+                    var propExpr = Property(parameter, property);
+                    Expression toStrExpr = toStrMethod == null ? propExpr : Call(propExpr, toStrMethod);
+                    return toStrExpr;
+                });
 
-                IEnumerable<Expression> expressions = expressionsToString.Select(expression => Call(expression, containsMethod, Constant(propertyQuery)));
 
-                Expression columnBody = expressions.Aggregate((prev, current) => OrElse(prev, current));
-                columnsSearchExpressions.Add(columnBody);
-            }
+            var globalQueryExpression = string.IsNullOrEmpty(globalQuery) ? null : queryedProperties.Select(delegate (PropertyInfo property)
+            {
+                var toStrExpr = propsToStringExprsDict[property];
+                Expression columnExpr = Call(toStrExpr, containsMethod, Constant(globalQuery));
+                return columnExpr;
+            }).Aggregate((prev, current) => OrElse(prev, current));
 
-            Expression body = columnsSearchExpressions.Aggregate((prev, current) => AndAlso(prev, current));
+            IEnumerable<Expression> singleColumnQueryExpressions = !columnsQueries.Any() ? new List<Expression>() : queryedProperties.Select(delegate (PropertyInfo property)
+            {
+                var toStrExpr = propsToStringExprsDict[property];
+                var query = columnsQueries.GetValueOrDefault(property.Name);
+                Expression? queryExpr = null;
+                if (query != null)
+                    queryExpr = Call(toStrExpr, containsMethod, Constant(query));
+                return queryExpr;
+            }).Where(expr => expr != null).Select(expr => expr!);
 
-            Expression<Func<T, bool>> lambda = Lambda<Func<T, bool>>(body, parameter);
+            var resultExpression = (globalQueryExpression == null ?singleColumnQueryExpressions : singleColumnQueryExpressions.Append(globalQueryExpression)).Aggregate((prev, current) => AndAlso(prev, current));
+
+
+            Expression<Func<T, bool>> lambda = Lambda<Func<T, bool>>(resultExpression, parameter);
             return sourceList.Where(lambda);
         }
+
     }
 }

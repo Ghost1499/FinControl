@@ -10,45 +10,6 @@
 
 <div class="text-center">
 	<h1 class="display-4">Закупка подразделения</h1>
-	@*
-	<table id="table_id" class="display">
-		<thead>
-			<tr>
-				<th>Id</th>
-				<th>ProductCode</th>
-				<th>ProductName</th>
-				<th>AdvanceSum</th>
-				<th>Warehouse</th>
-				<th>InvoiceSum</th>
-			</tr>
-		</thead>
-		<tbody>
-			@foreach (var note in ViewBag.modelsList)
-			{
-				<tr>
-					<td>
-						@note.Id
-					</td>
-					<td>
-						@note.ProductCode
-					</td>
-					<td>
-						@note.ProductName
-					</td>
-					<td>
-						@note.AdvanceSum
-					</td>
-					<td>
-						@note.Warehouse
-					</td>
-					<td>
-						@note.InvoiceNum
-					</td>
-				</tr>
-			}
-		</tbody>
-	</table>
-	*@
 	
 	<vc:table-from-model model=@Model.DataPropertiesNames tag-id="main_table"></vc:table-from-model>
 </div>

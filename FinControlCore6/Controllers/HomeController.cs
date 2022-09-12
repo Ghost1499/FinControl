@@ -4,6 +4,8 @@ using FinControlCore6.Models.AuxiliaryModels;
 using FinControlCore6.Models.DatabaseModels;
 using FinControlCore6.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System.Diagnostics;
 using System.Linq;
 
@@ -40,9 +42,7 @@ namespace FinControlCore6.Controllers
             }
             await indexViewModel.LoadTOuPurchasesDataAsync(parameters);
             var dataTableResult = new DataTableResult<TOuPurchase>(parameters.Draw, (int)indexViewModel.TotalCount, (int)indexViewModel.FilteredCount, indexViewModel.Purchases);
-            JsonResult jsonResult = Json(
-                dataTableResult
-                );
+            JsonResult jsonResult = Json(dataTableResult);
             return jsonResult;
         }
 
