@@ -70,14 +70,14 @@ $(document).ready(function () {
 
             // columns
             columns: columnsArr,
-            //columnDefs: [
-            //	{
-            //		searchable: false,
-            //		orderable: false,
-            //		targets: 0,
-            //	},
-            //],
 
+            // buttons
+            dom: 'Bfrtilp',
+            buttons: [{
+                extend: "colvis",
+                collectionLayout:"fixed columns"
+            }
+            ]
         }
     )
     //createIndexColumn(mainTable)

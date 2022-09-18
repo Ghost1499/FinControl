@@ -6,23 +6,23 @@
 @{
 	void PrintColumns(string className)
 	{
-		<tr class=@className>
-			@foreach (var propertyName in Model)
+	<tr class=@className>
+				@foreach (var propertyName in Model)
 			{
-				<th>@propertyName</th>
+					<th>@propertyName</th>
 			}
-		</tr>
+	</tr>
 	}
 }
-<table class="display" id=@ViewBag.TagId>
+<table id=@ViewBag.TagId class="compact stripe cell-border hover order-column"  style="width:100%;">
 	<thead>
 		@{
-			<tr class="search-row">
-				@for (int i =0;i<Model.Count();i++)
+				<tr class="search-row">
+					@for (int i =0;i<Model.Count();i++)
 				{
-					<th><input id=@("input" +i) type="text" placeholder="@("Search " + Model.ElementAt(i))" /></th>
+						<th><input id=@("input" +i) type="text" placeholder="@("Search " + Model.ElementAt(i))" /></th>
 				}
-			</tr>
+				</tr>
 			PrintColumns("column-names-row");
 
 		}
