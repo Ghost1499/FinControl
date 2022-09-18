@@ -14,7 +14,7 @@
 	</tr>
 	}
 }
-<table id=@ViewBag.TagId class="compact stripe cell-border hover order-column"  style="width:100%;">
+<table id=@ViewBag.TagId style="width:100%;" class="compact stripe cell-border hover order-column">
 	<thead>
 		@{
 				<tr class="search-row">
@@ -27,17 +27,6 @@
 
 		}
 	</thead>
-	@*<tbody>
-	@foreach (var purchase in Model.Purchases)
-	{
-	<tr>
-	@foreach (var property in properties)
-	{
-	<td>@Utils.GetPropertyValue(property,purchase).ToString()</td>
-	}
-	</tr>
-	}
-	</tbody>*@
 	<tfoot>
 		@{
 			PrintColumns("footer-row");

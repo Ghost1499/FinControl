@@ -72,7 +72,7 @@ $(document).ready(function () {
             columns: columnsArr,
 
             // buttons
-            dom: 'Bfrtilp',
+            dom: 'lBfrtip',
             buttons: [{
                 extend: "colvis",
                 collectionLayout:"fixed columns"
